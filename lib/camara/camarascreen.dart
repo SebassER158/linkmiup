@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'dart:typed_data';
-import 'package:googleapis/vision/v1.dart' as vision;
-import 'package:googleapis_auth/auth_io.dart' as auth;
+// import 'package:googleapis/vision/v1.dart' as vision;
+// import 'package:googleapis_auth/auth_io.dart' as auth;
 import 'dart:convert';
 
 class CamaraScreen extends StatefulWidget {
@@ -65,13 +65,13 @@ class _CamaraScreenState extends State<CamaraScreen> {
 
   Future<Map<String, String>> _extractDataFromImage(Uint8List imageData) async {
     try {
-      final credentials = auth.ServiceAccountCredentials.fromJson(credentialsJson);
-      final client = await auth.clientViaServiceAccount(credentials, [vision.VisionApi.cloudVisionScope]);
-      final visionApi = vision.VisionApi(client);
+      // final credentials = auth.ServiceAccountCredentials.fromJson(credentialsJson);
+      // final client = await auth.clientViaServiceAccount(credentials, [vision.VisionApi.cloudVisionScope]);
+      // final visionApi = vision.VisionApi(client);
 
       // Implementación de la extracción de datos...
 
-      client.close();
+      // client.close();
       return {"Resultado": "Datos extraídos con éxito"};
     } catch (e) {
       print('Error en _extractDataFromImage: $e');

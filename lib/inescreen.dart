@@ -1,10 +1,8 @@
-// Path: lib/screens/take_photo_screen.dart
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:typed_data';
-// import '../services/google_vision_service.dart';
-import '../services/app_state.dart';
+import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:linkmiup/infoscreen.dart';
 
 class IneScreen extends StatefulWidget {
   const IneScreen({Key? key}) : super(key: key);
@@ -16,75 +14,127 @@ class IneScreen extends StatefulWidget {
 class _IneScreenState extends State<IneScreen> {
   bool _isLoading = false;
   String? _errorMessage;
+  String _extractedText = "";
+  List<String> _detectedWords = [];
+  Map<String, String> extractedInfo = {
+    'Nombre': '',
+    'Apellido Paterno': '',
+    'Apellido Materno': '',
+    'CURP': '',
+    'Código Postal': '',
+    'Fecha de Nacimiento': '',
+    'Sexo': '',
+  };
 
-  @override
-  void initState() {
-    super.initState();
-    // Limpiar datos extraídos anteriormente si es necesario
-    AppState.clearExtractedData();
+  // Lista para los selectores
+  Map<String, String?> selectedValues = {
+    'Nombre': null,
+    'Apellido Paterno': null,
+    'Apellido Materno': null,
+    'CURP': null,
+    'Código Postal': null,
+    'Fecha de Nacimiento': null,
+    'Sexo': null,
+  };
+
+  Future<void> _takePhoto() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final ImagePicker _picker = ImagePicker();
+      final XFile? photo = await _picker.pickImage(source: ImageSource.gallery);
+
+      if (photo != null) {
+        final inputImage = InputImage.fromFilePath(photo.path);
+        final textRecognizer = GoogleMlKit.vision.textRecognizer();
+
+        try {
+          final RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
+          setState(() {
+            _extractedText = recognizedText.text;
+            _detectedWords = _extractedText.split(RegExp(r'\s+'));
+            _extractInformation(_extractedText);
+          });
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => InfoScreen(extractedText: _extractedText),
+            ),
+          );
+
+        } catch (e) {
+          setState(() {
+            _errorMessage = "Error al procesar la imagen: $e";
+          });
+        } finally {
+          textRecognizer.close();
+        }
+      } else {
+        setState(() {
+          _extractedText = "No se seleccionó ninguna imagen";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Error al procesar la imagen: $e";
+      });
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  // Future<void> _takePhoto() async {
-  //   setState(() {
-  //     _isLoading = true;
-  //     _errorMessage = null;
-  //   });
+  // Método para extraer información usando expresiones regulares
+  void _extractInformation(String text) {
+    RegExp curpRegex = RegExp(r'([A-Z]{4}\d{6}[HM][A-Z]{5}\d{2})');
+    RegExp cpRegex = RegExp(r'CP[:\s]?(\d{5})');
+    RegExp fechaNacimientoRegex = RegExp(r'(\d{2}/\d{2}/\d{4})');
+    RegExp sexoRegex = RegExp(r'\b(HOMBRE|MUJER)\b');
 
-  //   try {
-  //     final ImagePicker _picker = ImagePicker();
-  //     final XFile? photo = await _picker.pickImage(source: ImageSource.gallery);
+    // Extraer CURP
+    var curpMatch = curpRegex.firstMatch(text);
+    if (curpMatch != null) {
+      extractedInfo['CURP'] = curpMatch.group(1)!.trim();
+    }
 
-  //     if (photo != null) {
-  //       File _image = File(photo.path);
-  //       Uint8List imageBytes = await _image.readAsBytes();
-  //       Map<String, String> extractedData = await GoogleVisionService.extractDataFromImage(imageBytes);
-  //       // print(extractedData);
-  //       if (extractedData.containsKey("Error")) {
-  //         setState(() {
-  //           _errorMessage = extractedData["Error"];
-  //           _isLoading = false;
-  //         });
-  //       } else {
-  //         // Guardar los datos extraídos en AppState si es necesario
-  //         await AppState.saveExtractedData(extractedData);
+    // Extraer Código Postal
+    var cpMatch = cpRegex.firstMatch(text);
+    if (cpMatch != null) {
+      extractedInfo['Código Postal'] = cpMatch.group(1)!.trim();
+    }
 
-  //         // Navegar a GeneralInfoScreen con los datos extraídos
-  //         // Navigator.of(context).pushReplacement(
-  //         //   MaterialPageRoute(
-  //         //     builder: (context) => InfoScreen(extractedData: extractedData),
-  //         //   ),
-  //         // );
-  //       }
-  //     } else {
-  //       setState(() {
-  //         _isLoading = false;
-  //         _errorMessage = "No se seleccionó ninguna imagen";
-  //       });
-  //     }
-  //   } catch (e) {
-  //     setState(() {
-  //       _isLoading = false;
-  //       _errorMessage = "Error al procesar la imagen: $e";
-  //     });
-  //   }
-  // }
+    // Extraer Fecha de Nacimiento
+    var fechaMatch = fechaNacimientoRegex.firstMatch(text);
+    if (fechaMatch != null) {
+      extractedInfo['Fecha de Nacimiento'] = fechaMatch.group(1)!.trim();
+    }
 
-  @override
+    // Extraer Sexo
+    var sexoMatch = sexoRegex.firstMatch(text);
+    if (sexoMatch != null) {
+      extractedInfo['Sexo'] = sexoMatch.group(1)!.trim();
+    }
+  }
+
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromARGB(255, 10, 2, 97),
+      backgroundColor: const Color.fromARGB(255, 10, 2, 97),
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.check_circle_outline,
                 size: 100,
                 color: Colors.white,
               ),
-              SizedBox(height: 20),
-              Text(
+              const SizedBox(height: 20),
+              const Text(
                 '¡Empecemos!',
                 style: TextStyle(
                   fontSize: 24,
@@ -92,28 +142,28 @@ class _IneScreenState extends State<IneScreen> {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 10),
-              Text(
+              const SizedBox(height: 10),
+              const Text(
                 'Es hora de tomar una foto de tu INE',
                 style: TextStyle(
                   fontSize: 16,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 40),
-              // ElevatedButton(
-              //   child: Text('Tomar Foto', style: TextStyle(color: Color.fromARGB(255, 10, 2, 97))),
-              //   onPressed: _isLoading ? null : _takePhoto,
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: Colors.white,
-              //     foregroundColor: Color(0xFF4A3AFF),
-              //     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              //     textStyle: TextStyle(fontSize: 18),
-              //   ),
-              // ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                child: const Text('Tomar Foto', style: TextStyle(color: Color.fromARGB(255, 10, 2, 97))),
+                onPressed: _isLoading ? null : _takePhoto,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF4A3AFF),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+              ),
               if (_isLoading)
-                Padding(
-                  padding: const EdgeInsets.only(top: 20),
+                const Padding(
+                  padding: EdgeInsets.only(top: 20),
                   child: CircularProgressIndicator(color: Colors.white),
                 ),
               if (_errorMessage != null)
