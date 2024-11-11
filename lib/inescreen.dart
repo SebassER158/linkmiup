@@ -26,7 +26,6 @@ class _IneScreenState extends State<IneScreen> {
     'Sexo': '',
   };
 
-  // Lista para los selectores
   Map<String, String?> selectedValues = {
     'Nombre': null,
     'Apellido Paterno': null,
@@ -56,7 +55,7 @@ class _IneScreenState extends State<IneScreen> {
           setState(() {
             _extractedText = recognizedText.text;
             _detectedWords = _extractedText.split(RegExp(r'\s+'));
-            _extractInformation(_extractedText);
+            // _extractInformation(_extractedText);
           });
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
@@ -85,38 +84,6 @@ class _IneScreenState extends State<IneScreen> {
     setState(() {
       _isLoading = false;
     });
-  }
-
-  // Método para extraer información usando expresiones regulares
-  void _extractInformation(String text) {
-    RegExp curpRegex = RegExp(r'([A-Z]{4}\d{6}[HM][A-Z]{5}\d{2})');
-    RegExp cpRegex = RegExp(r'CP[:\s]?(\d{5})');
-    RegExp fechaNacimientoRegex = RegExp(r'(\d{2}/\d{2}/\d{4})');
-    RegExp sexoRegex = RegExp(r'\b(HOMBRE|MUJER)\b');
-
-    // Extraer CURP
-    var curpMatch = curpRegex.firstMatch(text);
-    if (curpMatch != null) {
-      extractedInfo['CURP'] = curpMatch.group(1)!.trim();
-    }
-
-    // Extraer Código Postal
-    var cpMatch = cpRegex.firstMatch(text);
-    if (cpMatch != null) {
-      extractedInfo['Código Postal'] = cpMatch.group(1)!.trim();
-    }
-
-    // Extraer Fecha de Nacimiento
-    var fechaMatch = fechaNacimientoRegex.firstMatch(text);
-    if (fechaMatch != null) {
-      extractedInfo['Fecha de Nacimiento'] = fechaMatch.group(1)!.trim();
-    }
-
-    // Extraer Sexo
-    var sexoMatch = sexoRegex.firstMatch(text);
-    if (sexoMatch != null) {
-      extractedInfo['Sexo'] = sexoMatch.group(1)!.trim();
-    }
   }
 
    @override

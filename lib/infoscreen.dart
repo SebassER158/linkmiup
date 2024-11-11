@@ -12,7 +12,6 @@ class InfoScreen extends StatefulWidget {
 
 class _InfoScreenState extends State<InfoScreen>
     with SingleTickerProviderStateMixin {
-  // Variables para almacenar la información extraída
   String nombre = '';
   String apellidoPaterno = '';
   String apellidoMaterno = '';
@@ -20,7 +19,7 @@ class _InfoScreenState extends State<InfoScreen>
   String fechaNacimiento = '';
   String sexo = '';
   late TabController _tabController;
-  // Variables para la dirección
+  
   TextEditingController calleController = TextEditingController();
   TextEditingController numeroController = TextEditingController();
   TextEditingController coloniaController = TextEditingController();
@@ -28,7 +27,7 @@ class _InfoScreenState extends State<InfoScreen>
   TextEditingController estadoController = TextEditingController();
   TextEditingController codigoPostalController = TextEditingController();
 
-  // Lista de palabras detectadas
+  
   List<String> _detectedWords = [];
   Map<String, String> extractedInfo = {};
 
@@ -38,12 +37,12 @@ class _InfoScreenState extends State<InfoScreen>
     _tabController = TabController(length: 2, vsync: this);
     AppState.saveLastRoute('/general_info');
 
-    // Inicializar la lista de palabras detectadas
+    
     _detectedWords = widget.extractedText.split(RegExp(r'\s+'));
     _extractInformation(widget.extractedText);
   }
 
-  // Método para extraer información específica usando expresiones regulares
+  
   void _extractInformation(String text) {
     print("El texto extraido");
     print(text);
@@ -53,32 +52,32 @@ class _InfoScreenState extends State<InfoScreen>
     RegExp fechaNacimientoRegex = RegExp(r'(\d{2}/\d{2}/\d{4})');
     RegExp sexoRegex = RegExp(r'\b(H|M)\b');
 
-    // Extraer CURP
+    // CURP
     var curpMatch = curpRegex.firstMatch(text);
     if (curpMatch != null) {
       curp = curpMatch.group(1)!.trim();
     }
 
-    // Extraer Fecha de Nacimiento
+    // Fecha de Nacimiento
     var fechaMatch = fechaNacimientoRegex.firstMatch(text);
     if (fechaMatch != null) {
       fechaNacimiento = fechaMatch.group(1)!.trim();
     }
 
-    // Extraer Sexo
+    // Sexo
     var sexoMatch = sexoRegex.firstMatch(text);
     if (sexoMatch != null) {
       sexo = sexoMatch.group(1)!.trim();
     }
 
-    setState(() {}); // Actualizar la UI con los datos extraídos
+    setState(() {});
   }
 
-  // Método para seleccionar una palabra de la lista con buscador
+  
   void _selectWordForField(String field) {
     if (_detectedWords.isEmpty) return;
 
-    // Filtrar palabras que ya se han seleccionado en algún campo
+    //  palabra que ya se han seleccionado en algún campo
     List<String> usedWords = [
       nombre,
       apellidoPaterno,
@@ -88,7 +87,7 @@ class _InfoScreenState extends State<InfoScreen>
       sexo,
     ].where((word) => word.isNotEmpty).toList();
 
-    // Excluir palabras ya usadas
+    // Excluyp palabras ya usadas
     List<String> availableWords =
         _detectedWords.where((word) => !usedWords.contains(word)).toList();
 
@@ -152,7 +151,6 @@ class _InfoScreenState extends State<InfoScreen>
                                 sexo = filteredWords[index];
                                 break;
                             }
-                            // Remover la palabra seleccionada de _detectedWords
                             _detectedWords.remove(filteredWords[index]);
                           });
                           Navigator.pop(context);
@@ -170,7 +168,6 @@ class _InfoScreenState extends State<InfoScreen>
   }
 
   void printAllData() {
-    // Información extraída
     print('Nombre: $nombre');
     print('Apellido Paterno: $apellidoPaterno');
     print('Apellido Materno: $apellidoMaterno');
@@ -178,7 +175,6 @@ class _InfoScreenState extends State<InfoScreen>
     print('Fecha de Nacimiento: $fechaNacimiento');
     print('Sexo: $sexo');
 
-    // Información de la dirección (desde los controladores de texto)
     print('Calle: ${calleController.text}');
     print('Número: ${numeroController.text}');
     print('Colonia: ${coloniaController.text}');
@@ -241,7 +237,6 @@ class _InfoScreenState extends State<InfoScreen>
                                 fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 20),
-                          // Inputs para la información extraída
                           _buildEditableField('Nombre', nombre, 'nombre'),
                           _buildEditableField('Apellido Paterno',
                               apellidoPaterno, 'apellidoPaterno'),
@@ -263,7 +258,6 @@ class _InfoScreenState extends State<InfoScreen>
                                     content: Text('Información confirmada')),
                               );
 
-                              // Cambia a la segunda pestaña
                               _tabController.animateTo(1);
                             },
                             style: ElevatedButton.styleFrom(
@@ -286,7 +280,6 @@ class _InfoScreenState extends State<InfoScreen>
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 20),
-                            // Inputs para la información extraída
                             _buildTextField('Calle', calleController),
                             _buildTextField('Número', numeroController),
                             _buildTextField('Colonia', coloniaController),
@@ -298,7 +291,6 @@ class _InfoScreenState extends State<InfoScreen>
                             ElevatedButton(
                               child: const Text('Enviar'),
                               onPressed: () {
-                                // Llamar a la función que imprime todos los datos
                                 printAllData();
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
@@ -310,19 +302,6 @@ class _InfoScreenState extends State<InfoScreen>
                                 minimumSize: const Size(double.infinity, 50),
                               ),
                             ),
-                            // ElevatedButton(
-                            //   child: const Text('Enviar'),
-                            //   onPressed: () {
-                            //     ScaffoldMessenger.of(context).showSnackBar(
-                            //       const SnackBar(
-                            //           content: Text('Información confirmada')),
-                            //     );
-                            //   },
-                            //   style: ElevatedButton.styleFrom(
-                            //     backgroundColor: Colors.blue[900],
-                            //     minimumSize: const Size(double.infinity, 50),
-                            //   ),
-                            // ),
                           ],
                         ),
                       ),
@@ -337,7 +316,6 @@ class _InfoScreenState extends State<InfoScreen>
     );
   }
 
-  // Widget para campos editables
   Widget _buildEditableField(String label, String value, String field,
       {bool isEditable = true}) {
     return Padding(
@@ -369,16 +347,6 @@ class _InfoScreenState extends State<InfoScreen>
   }
 
   Widget _buildTextField(String label, TextEditingController controller) {
-    // return Padding(
-    //   padding: const EdgeInsets.only(bottom: 12.0),
-    //   child: TextField(
-    //     controller: controller,
-    //     decoration: InputDecoration(
-    //       labelText: label,
-    //       border: const OutlineInputBorder(),
-    //     ),
-    //   ),
-    // );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
@@ -390,7 +358,7 @@ class _InfoScreenState extends State<InfoScreen>
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 16.0), // Espacio entre el título y el campo
+          const SizedBox(width: 16.0),
           Expanded(
             child: TextField(
               controller: controller,
